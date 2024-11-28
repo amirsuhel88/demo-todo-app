@@ -1,4 +1,10 @@
-import {StyleSheet, Text, TextInput, View} from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import React, {useState} from 'react';
 import axios from 'axios';
 
@@ -8,7 +14,13 @@ const NewTodo = () => {
 
   const handleSaveTodo = async () => {
     try {
-      const response = await axios.post(`htt:://192.168.255.150:5000/api/todo`);
+      const response = await axios.post(
+        `http://192.168.255.150:5000/api/todo`,
+        {
+          title,
+          description,
+        },
+      );
     } catch (error) {
       console.log('error creating new todo');
     }
