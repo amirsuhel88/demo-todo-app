@@ -1,7 +1,7 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 
 export interface Todo {
-  id: string;
+  _id: string;
   title: string;
   description: string;
 }
@@ -28,6 +28,9 @@ const todosSlice = createSlice({
     addTodo: (state, action: PayloadAction<Todo>) => {
       state.todos.push(action.payload);
     },
+    removeTodo(state, action: PayloadAction<string>) {
+      state.todos = state.todos.filter(todo => todo._id !== action.payload); // Remove todo by ID
+    },
     setStatus: (
       state,
       action: PayloadAction<'idle' | 'loading' | 'succeed' | 'failed'>,
@@ -40,5 +43,6 @@ const todosSlice = createSlice({
   },
 });
 
-export const {setTodos, addTodo, setStatus, setError} = todosSlice.actions;
+export const {setTodos, addTodo, removeTodo, setStatus, setError} =
+  todosSlice.actions;
 export default todosSlice.reducer;

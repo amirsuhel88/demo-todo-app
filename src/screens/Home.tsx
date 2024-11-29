@@ -9,7 +9,12 @@ import {
 import React, {useEffect, useState, useCallback} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {RootState} from '../store/store';
-import {setError, setStatus, setTodos} from '../store/slices/TodoSlice';
+import {
+  removeTodo,
+  setError,
+  setStatus,
+  setTodos,
+} from '../store/slices/TodoSlice';
 import axios from 'axios';
 import {useNavigation} from '@react-navigation/native';
 import {NewTodoScreenNavigationProp} from '../../type';
@@ -38,14 +43,27 @@ const Home = () => {
     }
   }, [dispatch]);
 
+  // fetch todo
   useEffect(() => {
     fetchTodos();
   }, [fetchTodos]);
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchTodos(); // Re-fetch todos when the user pulls to refresh
+    await fetchTodos();
     setRefreshing(false);
+  };
+
+  // delete a todo
+  const deleteTodo = async (todoId: string) => {
+    try {
+      await axios.delete(
+        `http://192.168.255.150:5000/api/delete-todo/${todoId}`,
+      );
+      dispatch(removeTodo(todoId));
+    } catch (error: any) {
+      dispatch(setError(error.message));
+    }
   };
 
   return (
@@ -67,11 +85,19 @@ const Home = () => {
             style={[
               styles.todoItem,
               index === todos.length - 1 && styles.lastTodoItem, // Conditional style for the last item
+              {flexDirection: 'row', justifyContent: 'space-between'}, // Divide into two sections
             ]}>
-            <Text style={styles.todoTitle}>{todo.title}</Text>
-            <Text style={styles.todoDescription}>{todo.description}</Text>
-            <TouchableOpacity>
-              <Text>Delete</Text>
+            <View style={{flex: 1}}>
+              <Text style={styles.todoTitle}>{todo.title}</Text>
+              <Text style={styles.todoDescription}>{todo.description}</Text>
+            </View>
+            <TouchableOpacity style={styles.deleteButton}>
+              <Text style={styles.editText}>edit</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.deleteButton}
+              onPress={() => deleteTodo(todo._id)}>
+              <Text style={styles.deleteText}>X</Text>
             </TouchableOpacity>
           </View>
         ))
@@ -134,5 +160,18 @@ const styles = StyleSheet.create({
     color: '#ffffff', // Text color
     fontSize: 20,
     fontWeight: 'bold',
+  },
+  deleteButton: {
+    padding: 4,
+    paddingRight: 20,
+    borderRadius: 5,
+    justifyContent: 'center', // Center the content vertically
+    alignItems: 'center',
+  },
+  deleteText: {
+    color: '#ff0000',
+  },
+  editText: {
+    color: '#0000ff',
   },
 });
