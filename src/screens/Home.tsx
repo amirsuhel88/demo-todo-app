@@ -4,11 +4,11 @@ import {
   Text,
   TouchableOpacity,
   View,
+  RefreshControl,
 } from 'react-native';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {RootState} from '../store/store';
-import {State} from 'react-native-gesture-handler';
 import {setError, setStatus, setTodos} from '../store/slices/TodoSlice';
 import axios from 'axios';
 import {useNavigation} from '@react-navigation/native';
@@ -21,28 +21,39 @@ const Home = () => {
   const error = useSelector((state: RootState) => state.todos.error);
 
   const navigation = useNavigation<NewTodoScreenNavigationProp>();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchTodos = useCallback(async () => {
+    dispatch(setStatus('loading'));
+    try {
+      const response = await axios.get(
+        'http://192.168.255.150:5000/api/all-todos',
+      );
+
+      dispatch(setTodos(response.data.todos));
+      dispatch(setStatus('succeed'));
+    } catch (err: any) {
+      dispatch(setError(err.message));
+      dispatch(setStatus('failed'));
+    }
+  }, [dispatch]);
 
   useEffect(() => {
-    const fetchTodos = async () => {
-      dispatch(setStatus('loading'));
-      try {
-        const response = await axios.get(
-          'http://192.168.255.150:5000/api/all-todos',
-        );
-        console.log('heloooooooooo', response);
-        dispatch(setTodos(response.data.todos));
-        console.log('helo2');
-        dispatch(setStatus('succeed'));
-      } catch (err: any) {
-        dispatch(setError(err.message));
-        dispatch(setStatus('failed'));
-      }
-    };
     fetchTodos();
-  }, []);
-  console.log('todos from store:', todos);
+  }, [fetchTodos]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchTodos(); // Re-fetch todos when the user pulls to refresh
+    setRefreshing(false);
+  };
+
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }>
       <Text style={styles.heading}>Todo List</Text>
       <TouchableOpacity
         style={styles.button}
@@ -50,10 +61,18 @@ const Home = () => {
         <Text style={styles.buttonText}>+</Text>
       </TouchableOpacity>
       {todos?.length > 0 ? (
-        todos.map((todo: any) => (
-          <View key={todo._id} style={styles.todoItem}>
+        [...todos].reverse().map((todo: any, index: number) => (
+          <View
+            key={todo._id}
+            style={[
+              styles.todoItem,
+              index === todos.length - 1 && styles.lastTodoItem, // Conditional style for the last item
+            ]}>
             <Text style={styles.todoTitle}>{todo.title}</Text>
             <Text style={styles.todoDescription}>{todo.description}</Text>
+            <TouchableOpacity>
+              <Text>Delete</Text>
+            </TouchableOpacity>
           </View>
         ))
       ) : (
@@ -84,6 +103,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
+  },
+  lastTodoItem: {
+    marginBottom: 30,
   },
   todoTitle: {
     fontSize: 18,

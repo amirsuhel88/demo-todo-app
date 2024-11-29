@@ -7,10 +7,18 @@ import {
 } from 'react-native';
 import React, {useState} from 'react';
 import axios from 'axios';
+import {useNavigation} from '@react-navigation/native';
+import {HomeScreenNavigationProp} from '../../type';
+import {useDispatch} from 'react-redux';
+import {addTodo} from '../store/slices/TodoSlice';
+import {resolver} from '../../metro.config';
 
 const NewTodo = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const dispatch = useDispatch();
+
+  const navigation = useNavigation<HomeScreenNavigationProp>();
 
   const handleSaveTodo = async () => {
     try {
@@ -21,6 +29,9 @@ const NewTodo = () => {
           description,
         },
       );
+
+      dispatch(addTodo(response.data.todo));
+      navigation.goBack();
     } catch (error) {
       console.log('error creating new todo');
     }
@@ -48,7 +59,7 @@ const NewTodo = () => {
 
       {/* Save Button */}
       <TouchableOpacity style={styles.button} onPress={handleSaveTodo}>
-        <Text style={styles.buttonText}>Save Todo</Text>
+        <Text style={styles.buttonText}>Save</Text>
       </TouchableOpacity>
     </View>
   );
@@ -81,7 +92,7 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   button: {
-    backgroundColor: '#007BFF',
+    backgroundColor: '#7fb3eb',
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
