@@ -6,6 +6,7 @@ import Home from './src/screens/Home';
 import {Provider} from 'react-redux';
 import {store} from './src/store/store';
 import NewTodo from './src/screens/NewTodo';
+import EditTodo from './src/screens/EditTodo';
 
 const Stack = createNativeStackNavigator();
 
@@ -16,6 +17,7 @@ const RootStack = () => {
       screenOptions={{headerShown: false}}>
       <Stack.Screen name="Home" component={Home} />
       <Stack.Screen name="NewTodo" component={NewTodo} />
+      <Stack.Screen name="EditTodo" component={EditTodo} />
     </Stack.Navigator>
   );
 };

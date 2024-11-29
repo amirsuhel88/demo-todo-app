@@ -17,7 +17,10 @@ import {
 } from '../store/slices/TodoSlice';
 import axios from 'axios';
 import {useNavigation} from '@react-navigation/native';
-import {NewTodoScreenNavigationProp} from '../../type';
+import {
+  EditTodoScreenNavigationProp,
+  NewTodoScreenNavigationProp,
+} from '../../type';
 
 const Home = () => {
   const dispatch = useDispatch();
@@ -26,6 +29,7 @@ const Home = () => {
   const error = useSelector((state: RootState) => state.todos.error);
 
   const navigation = useNavigation<NewTodoScreenNavigationProp>();
+  const navigationToEditTodo = useNavigation<EditTodoScreenNavigationProp>();
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchTodos = useCallback(async () => {
@@ -66,6 +70,16 @@ const Home = () => {
     }
   };
 
+  // const editTodo = async (todoId: string) => {
+  //   try {
+  //     await axios.patch(
+  //       `http://192.168.255.150:5000/api/udpate-todo/${todoId}`,
+  //     );
+  //   } catch (error: any) {
+  //     dispatch(setError(error.message));
+  //   }
+  // };
+
   return (
     <ScrollView
       style={styles.container}
@@ -91,7 +105,9 @@ const Home = () => {
               <Text style={styles.todoTitle}>{todo.title}</Text>
               <Text style={styles.todoDescription}>{todo.description}</Text>
             </View>
-            <TouchableOpacity style={styles.deleteButton}>
+            <TouchableOpacity
+              style={styles.deleteButton}
+              onPress={() => navigationToEditTodo.navigate('EditTodo')}>
               <Text style={styles.editText}>edit</Text>
             </TouchableOpacity>
             <TouchableOpacity
