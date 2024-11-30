@@ -4,9 +4,10 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 
 import Home from './src/screens/Home';
 import {Provider} from 'react-redux';
-import {store} from './src/store/store';
+import {persistor, store} from './src/store/store';
 import NewTodo from './src/screens/NewTodo';
 import EditTodo from './src/screens/EditTodo';
+import {PersistGate} from 'redux-persist/integration/react';
 
 const Stack = createNativeStackNavigator();
 
@@ -25,9 +26,11 @@ const RootStack = () => {
 function App(): React.JSX.Element {
   return (
     <Provider store={store}>
-      <NavigationContainer>
-        <RootStack />
-      </NavigationContainer>
+      <PersistGate loading={null} persistor={persistor}>
+        <NavigationContainer>
+          <RootStack />
+        </NavigationContainer>
+      </PersistGate>
     </Provider>
   );
 }

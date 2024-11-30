@@ -12,6 +12,7 @@ import {RootState} from '../store/store';
 import {
   removeTodo,
   setError,
+  setSelectedTodoId,
   setStatus,
   setTodos,
 } from '../store/slices/TodoSlice';
@@ -70,16 +71,10 @@ const Home = () => {
     }
   };
 
-  // const editTodo = async (todoId: string) => {
-  //   try {
-  //     await axios.patch(
-  //       `http://192.168.255.150:5000/api/udpate-todo/${todoId}`,
-  //     );
-  //   } catch (error: any) {
-  //     dispatch(setError(error.message));
-  //   }
-  // };
-
+  const handleEditButton = (todoId: string) => {
+    dispatch(setSelectedTodoId(todoId));
+    navigationToEditTodo.navigate('EditTodo');
+  };
   return (
     <ScrollView
       style={styles.container}
@@ -107,7 +102,8 @@ const Home = () => {
             </View>
             <TouchableOpacity
               style={styles.deleteButton}
-              onPress={() => navigationToEditTodo.navigate('EditTodo')}>
+              // onPress={() => navigationToEditTodo.navigate('EditTodo')}
+              onPress={() => handleEditButton(todo._id)}>
               <Text style={styles.editText}>edit</Text>
             </TouchableOpacity>
             <TouchableOpacity
