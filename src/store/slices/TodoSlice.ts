@@ -1,9 +1,11 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 
 export interface Todo {
-  _id: string;
+  _id: string | number;
   title: string;
   description: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface todosSlice {
@@ -33,8 +35,23 @@ const todosSlice = createSlice({
     // setSingleTodo: (state, action: PayloadAction<Todo>) => {
     //   state.selectedTodoId = action.payload._id; // Track the selected todo's ID
     //   state.selectedTodo = action.payload; // Store the fetched todo
-    // },
+    // },th
+
+    /*
+    this is for mongo db
     addTodo: (state, action: PayloadAction<Todo>) => {
+      try {
+        state.todos.push(action.payload);
+      } catch (error) {
+        console.error(error);
+      }
+    },
+*/
+    // this is for mysql
+    addTodo: (state, action: PayloadAction<Todo>) => {
+      if (!state.todos) {
+        state.todos = []; // Ensure `todos` is initialized
+      }
       state.todos.push(action.payload);
     },
 

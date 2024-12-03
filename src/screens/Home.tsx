@@ -8,6 +8,11 @@ import {
 } from 'react-native';
 import React, {useEffect, useState, useCallback} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
+import Feather from 'react-native-vector-icons/Feather';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import Foundation from 'react-native-vector-icons/Foundation';
+import FontAwesome6 from 'react-native-vector-icons/Foundation';
+
 import {RootState} from '../store/store';
 import {
   removeTodo,
@@ -22,6 +27,7 @@ import {
   EditTodoScreenNavigationProp,
   NewTodoScreenNavigationProp,
 } from '../../type';
+import BASE_URL from '../../baseUrl';
 
 const Home = () => {
   const dispatch = useDispatch();
@@ -36,11 +42,10 @@ const Home = () => {
   const fetchTodos = useCallback(async () => {
     dispatch(setStatus('loading'));
     try {
-      const response = await axios.get(
-        'http://192.168.255.150:5000/api/all-todos',
-      );
+      const response = await axios.get(`${BASE_URL}/all-todos`);
 
-      dispatch(setTodos(response.data.todos));
+      // dispatch(setTodos(response.data.todos));
+      dispatch(setTodos(response.data));
       dispatch(setStatus('succeed'));
     } catch (err: any) {
       dispatch(setError(err.message));
@@ -62,9 +67,7 @@ const Home = () => {
   // delete a todo
   const deleteTodo = async (todoId: string) => {
     try {
-      await axios.delete(
-        `http://192.168.255.150:5000/api/delete-todo/${todoId}`,
-      );
+      await axios.delete(`${BASE_URL}/delete-todo/${todoId}`);
       dispatch(removeTodo(todoId));
     } catch (error: any) {
       dispatch(setError(error.message));
@@ -81,11 +84,14 @@ const Home = () => {
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }>
-      <Text style={styles.heading}>Todo List</Text>
+      <Text style={styles.heading}>
+        Todo List <Foundation name="clipboard-notes" size={22} />
+      </Text>
+
       <TouchableOpacity
         style={styles.button}
         onPress={() => navigation.navigate('NewTodo')}>
-        <Text style={styles.buttonText}>+</Text>
+        <Ionicons name="add-circle" color={'white'} size={40} />
       </TouchableOpacity>
       {todos?.length > 0 ? (
         [...todos].reverse().map((todo: any, index: number) => (
@@ -100,17 +106,20 @@ const Home = () => {
               <Text style={styles.todoTitle}>{todo.title}</Text>
               <Text style={styles.todoDescription}>{todo.description}</Text>
             </View>
-            <TouchableOpacity
-              style={styles.deleteButton}
-              // onPress={() => navigationToEditTodo.navigate('EditTodo')}
-              onPress={() => handleEditButton(todo._id)}>
-              <Text style={styles.editText}>edit</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={() => deleteTodo(todo._id)}>
-              <Text style={styles.deleteText}>X</Text>
-            </TouchableOpacity>
+            <View>
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => deleteTodo(todo._id)}>
+                <Ionicons name="close" size={22} color={'red'} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.deleteButton}
+                // onPress={() => navigationToEditTodo.navigate('EditTodo')}
+                onPress={() => handleEditButton(todo._id)}>
+                {/* <Text style={styles.editText}>edit</Text> */}
+                <Feather name="edit-3" color={'#7fb3eb'} size={22} />
+              </TouchableOpacity>
+            </View>
           </View>
         ))
       ) : (
