@@ -19,6 +19,7 @@ import {
   setStatus,
   updateTodo,
 } from '../store/slices/TodoSlice';
+import BASE_URL from '../../baseUrl';
 
 const EditTodo = () => {
   const [title, setTitle] = useState('');
@@ -26,7 +27,6 @@ const EditTodo = () => {
   const [refreshing, setRefreshing] = useState(false);
   const dispatch = useDispatch();
   const todoId = useSelector((state: RootState) => state.todos.selectedTodoId);
-  console.log('todo id: ', todoId);
   const navigation = useNavigation<HomeScreenNavigationProp>();
 
   // fetch the selected todo from the server
@@ -34,11 +34,8 @@ const EditTodo = () => {
     async (todoId: string) => {
       dispatch(setStatus('loading'));
       try {
-        const response = await axios.get(
-          `http://192.168.255.150:5000/api/single-todo/${todoId}`,
-        );
+        const response = await axios.get(`${BASE_URL}/single-todo/${todoId}`);
         // dispatch(setSingleTodo(response.data.todo));
-        console.log('data', response.data.todo);
         setTitle(response.data.todo.title); // Populate the title
         setDescription(response.data.todo.description);
       } catch (error: any) {
@@ -56,15 +53,12 @@ const EditTodo = () => {
 
   const handleUpdateTodo = async (todoId: string) => {
     try {
-      const response = await axios.patch(
-        `http://192.168.255.150:5000/api/udpate-todo/${todoId}`,
-        {
-          title,
-          description,
-        },
-      );
+      const response = await axios.patch(`${BASE_URL}/udpate-todo/${todoId}`, {
+        title,
+        description,
+      });
       dispatch(updateTodo(response.data.todo));
-      console.log('hi');
+
       navigation.goBack();
     } catch (error) {
       console.log('error creating new todo');
