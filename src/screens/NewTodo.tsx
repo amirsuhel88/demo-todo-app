@@ -12,6 +12,7 @@ import {HomeScreenNavigationProp} from '../../type';
 import {useDispatch} from 'react-redux';
 import {addTodo} from '../store/slices/TodoSlice';
 import {resolver} from '../../metro.config';
+import BASE_URL from '../../baseUrl';
 
 const NewTodo = () => {
   const [title, setTitle] = useState('');
@@ -22,18 +23,15 @@ const NewTodo = () => {
 
   const handleSaveTodo = async () => {
     try {
-      const response = await axios.post(
-        `http://192.168.255.150:5000/api/todo`,
-        {
-          title,
-          description,
-        },
-      );
+      const response = await axios.post(`${BASE_URL}/todo`, {
+        title,
+        description,
+      });
 
       dispatch(addTodo(response.data.todo));
       navigation.goBack();
     } catch (error) {
-      console.log('error creating new todo');
+      console.log('error creating new todo', error);
     }
   };
   return (
