@@ -5,15 +5,13 @@ import {
   TouchableOpacity,
   View,
   RefreshControl,
+  Modal,
 } from 'react-native';
 import React, {useEffect, useState, useCallback} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
-import Feather from 'react-native-vector-icons/Feather';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import Foundation from 'react-native-vector-icons/Foundation';
-import FontAwesome6 from 'react-native-vector-icons/Foundation';
-
+import axios from 'axios';
 import {RootState} from '../store/store';
+import {useNavigation} from '@react-navigation/native';
 import {
   removeTodo,
   setError,
@@ -21,30 +19,25 @@ import {
   setStatus,
   setTodos,
 } from '../store/slices/TodoSlice';
-import axios from 'axios';
-import {useNavigation} from '@react-navigation/native';
+import BASE_URL from '../../baseUrl';
 import {
   EditTodoScreenNavigationProp,
   NewTodoScreenNavigationProp,
 } from '../../type';
-import BASE_URL from '../../baseUrl';
 
 const Home = () => {
   const dispatch = useDispatch();
   const todos = useSelector((state: RootState) => state.todos.todos);
-  const status = useSelector((state: RootState) => state.todos.status);
-  const error = useSelector((state: RootState) => state.todos.error);
-
+  const [refreshing, setRefreshing] = useState(false);
+  const [selectedTodo, setSelectedTodo] = useState<any>(null);
+  const [modalVisible, setModalVisible] = useState(false);
   const navigation = useNavigation<NewTodoScreenNavigationProp>();
   const navigationToEditTodo = useNavigation<EditTodoScreenNavigationProp>();
-  const [refreshing, setRefreshing] = useState(false);
 
   const fetchTodos = useCallback(async () => {
     dispatch(setStatus('loading'));
     try {
       const response = await axios.get(`${BASE_URL}/all-todos`);
-
-      // dispatch(setTodos(response.data.todos));
       dispatch(setTodos(response.data));
       dispatch(setStatus('succeed'));
     } catch (err: any) {
@@ -53,7 +46,6 @@ const Home = () => {
     }
   }, [dispatch]);
 
-  // fetch todo
   useEffect(() => {
     fetchTodos();
   }, [fetchTodos]);
@@ -64,7 +56,6 @@ const Home = () => {
     setRefreshing(false);
   };
 
-  // delete a todo
   const deleteTodo = async (todoId: string) => {
     try {
       await axios.delete(`${BASE_URL}/delete-todo/${todoId}`);
@@ -76,55 +67,62 @@ const Home = () => {
 
   const handleEditButton = (todoId: string) => {
     dispatch(setSelectedTodoId(todoId));
+    // Navigate to edit screen
+    // Example: navigation.navigate('EditTodo');
     navigationToEditTodo.navigate('EditTodo');
+    setModalVisible(false);
   };
+
+  const handleLongPress = (todo: any) => {
+    setSelectedTodo(todo);
+    setModalVisible(true);
+  };
+
   return (
     <ScrollView
       style={styles.container}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }>
-      <Text style={styles.heading}>
-        Todo List <Foundation name="clipboard-notes" size={22} />
-      </Text>
+      <Text style={styles.heading}>🔅Todo List 📒</Text>
 
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => navigation.navigate('NewTodo')}>
-        <Ionicons name="add-circle" color={'white'} size={40} />
-      </TouchableOpacity>
       {todos?.length > 0 ? (
-        [...todos].reverse().map((todo: any, index: number) => (
-          <View
+        [...todos].reverse().map((todo: any) => (
+          <TouchableOpacity
             key={todo._id}
-            style={[
-              styles.todoItem,
-              index === todos.length - 1 && styles.lastTodoItem, // Conditional style for the last item
-              {flexDirection: 'row', justifyContent: 'space-between'}, // Divide into two sections
-            ]}>
-            <View style={{flex: 1}}>
-              <Text style={styles.todoTitle}>{todo.title}</Text>
-              <Text style={styles.todoDescription}>{todo.description}</Text>
-            </View>
-            <View>
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={() => deleteTodo(todo._id)}>
-                <Ionicons name="close" size={22} color={'red'} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.deleteButton}
-                // onPress={() => navigationToEditTodo.navigate('EditTodo')}
-                onPress={() => handleEditButton(todo._id)}>
-                {/* <Text style={styles.editText}>edit</Text> */}
-                <Feather name="edit-3" color={'#7fb3eb'} size={22} />
-              </TouchableOpacity>
-            </View>
-          </View>
+            onLongPress={() => handleLongPress(todo)}
+            style={styles.todoItem}>
+            <Text style={styles.todoTitle}>{todo.title}</Text>
+            <Text style={styles.todoDescription}>{todo.description}</Text>
+          </TouchableOpacity>
         ))
       ) : (
-        <Text>No Todos Found</Text>
+        <Text>No Todos Found 😢</Text>
       )}
+
+      <Modal transparent={true} visible={modalVisible} animationType="slide">
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Choose an option</Text>
+            <TouchableOpacity
+              onPress={() => {
+                handleEditButton(selectedTodo?._id);
+              }}>
+              <Text style={styles.modalOption}>Edit</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                deleteTodo(selectedTodo?._id);
+                setModalVisible(false);
+              }}>
+              <Text style={styles.modalOption}>Delete</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setModalVisible(false)}>
+              <Text style={styles.modalClose}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -133,66 +131,61 @@ export default Home;
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
     padding: 16,
-    backgroundColor: '#f5f5f5',
   },
   heading: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 16,
+    textAlign: 'center',
+    marginVertical: 16,
   },
   todoItem: {
-    padding: 16,
     backgroundColor: '#ffffff',
     borderRadius: 8,
+    padding: 16,
     marginBottom: 12,
     shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
   },
-  lastTodoItem: {
-    marginBottom: 30,
-  },
   todoTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 8,
   },
   todoDescription: {
     fontSize: 14,
-    color: '#666',
+    color: '#6c757d',
   },
-  center: {
+  modalContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
-  button: {
-    backgroundColor: '#7fb3eb', // Button color
-    paddingVertical: 12,
-    paddingHorizontal: 24,
+  modalContent: {
+    width: '80%',
+    backgroundColor: '#fff',
     borderRadius: 8,
-    alignItems: 'center', // Center text horizontally
-    marginTop: 16,
-    marginBottom: 16,
-  },
-  buttonText: {
-    color: '#ffffff', // Text color
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  deleteButton: {
-    padding: 4,
-    paddingRight: 20,
-    borderRadius: 5,
-    justifyContent: 'center', // Center the content vertically
+    padding: 16,
     alignItems: 'center',
   },
-  deleteText: {
-    color: '#ff0000',
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 16,
   },
-  editText: {
-    color: '#0000ff',
+  modalOption: {
+    fontSize: 18,
+    color: '#007bff',
+    marginVertical: 8,
+  },
+  modalClose: {
+    fontSize: 18,
+    color: '#dc3545',
+    marginTop: 12,
   },
 });
